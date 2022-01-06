@@ -33,6 +33,45 @@ def fibo(n):
 
 
 num = int(input())
+
+
+# <금광> 문제 다시 풀기
+mine = []
+
+for t in range(int(input())):
+    n, m = map(int, input().split())
+    array = list(map(int, input().split()))
+    dp = []
+
+    # 1차원 배열을 2차원 배열로 만들기
+    idx = 0
+    for i in range(n):
+        dp.append(array[idx:idx+m])
+        idx = idx + m
+
+    for j in range(1, m):
+        for i in range(n):
+
+            if i == 0:
+                left_up = 0
+            else:
+                left_up = dp[i-1][j-1]
+
+            if i == (n-1):
+                left_down = 0
+            else:
+                left_down = dp[i+1][j-1]
+
+            left = dp[i][j-1]
+            dp[i][j] = dp[i][j] + max(left_up, left_down, left)
+
+    # m-1 열 중에서 가장 큰 값 구하기
+    result = 0
+    for i in range(n):
+        result = max(result, dp[i][m-1])
+
+    print(result)
+
 print(fibo(num))
 
 
