@@ -239,3 +239,106 @@ for i in range(1, n+1):
 # 플로이드 워셜 알고리즘은 다이나믹 프로그래밍 유형에 속한다. -> 점화식을 이용하여 삼중 반복문으로 2차원 테이블을 갱신!
 # 노드의 개수가 적을 때 효과적이다.
 # (참고 : 노드와 간선의 개수가 많을 때는 다익스트라 알고리즘을 사용하는 것이 효율적)
+
+# 각 단계마다 특정한 노드 k를 거쳐 가는 경우를 확인한다. : a에서 b로 가는 최단 거리보다 a에서 k를 거쳐 b로 가는 거리가 더 짧은지 검사한다.
+# D_ab = min(D_ab, D_ak + D_kb)
+# 예를 들어서 1번 노드를 거쳐 가는 경우를 고려해본다.
+# 이때, 자기 자신에서 자기 자신으로 가는 경우 / 1번 노드에서 시작하는 경우 (1번 행) / 1번 노드로 끝나는 경우 (1번 열) 는 제외한다.
+
+# 플로이드 워셜 알고리즘
+INF = int(1e9)
+
+# 노드의 개수 및 간선의 개수 입력받기
+n = int(input())
+m = int(input())
+
+# 2차원 리스트 (그래프 표현)를 만들고, 무한으로 초기화
+graph = [[INF] * (n+1) for _ in range(n+1)]
+
+# 자기 자신에서 자기 자신으로 가는 비용은 0으로 초기화
+for a in range(1, n+1):
+    for b in range(1, n+1):
+        if a == b :
+            graph[a][b] = 0
+            
+# 각 간선에 대한 정보를 입력 받아, 그 값으로 초기화
+for _ in range(m):
+    # A에서 B로 가는 비용은 C라고 설정
+    a, b, c = map(int, input().split())
+    graph[a][b] = c
+    
+# 점화식에 따라 플로이드 워셜 알고리즘을 수행
+for k in range(1, n+1):
+    for a in range(1, n+1):
+        for b in range(1, n+1):
+            graph[a][b] = min(graph[a][b], graph[a][k] + graph[k][b])
+            
+# 수행된 결과를 출력
+for a in range(1, n+1):
+    for b in range(1, n+1):
+        # 도달할 수 없는 경우, 무한 (Infinity)이라고 출력
+        if graph[a][b] == INF:
+            print("Infinity", end=" ")
+        else:
+            print(graph[a][b], end=" ")
+        
+    print()
+    
+# 플로이드 워셜 알고리즘 성능 분석
+# 노드의 개수가 N개일 때 알고리즘 상으로 N번의 단계를 수행한다. : 각 단계마다 O(N^2)의 연산을 통해 현재 노드를 거쳐 가는 모든 경로를 고려한다.
+# 따라서 플로이드 워셜 알고리즘의 총 시간 복잡도는 O(N^3)이다. 시간 복잡도가 많이 크므로 조심해서 사용해야 한다.
+
+
+# < 문제 > : 전보
+# 어떤 나라에는 N개의 도시가 있다. 그리고 각 도시는 보내고자 하는 메시지가 있는 경우, 다른 도시로 전보를 보내서 다른 도시로 해당 메시지를 전송할 수 있다.
+# 하지만 X라는 도시에서 Y라는 도시로 전보를 보내고자 한다면, 도시 X에서 Y로 향하는 통로가 설치되어 있어야 한다. 예를 들어 X에서 Y로 향하는 통로는 있지만, Y에서 X로 향하는 통로가 없다면
+# Y는 X로 메시지를 보낼 수 없다. 또한 통로를 거쳐 메시지를 보낼 때에는 일정 시간이 소요된다.
+# 어느 날 C라는 도시에서 위급 상황이 발생했다. 그래서 최대한 많은 도시로 메시지를 보내고자 한다. 메시지는 도시 C에서 출발하여 각 도시 사이에 설치된 통로를 거쳐, 최대한 많이 퍼져나갈 것이다.
+# 각 도시의 번호와 통로가 설치되어 있는 정보가 주어졌을 때, 도시 C에서 보낸 메시지를 받게 되는 도시의 개수는 총 몇 개이며 도시들이 모두 메시지를 받는 데까지 걸리는 시간은 얼마인지 계산하는 프로그램을 작성하시오.
+
+import heapq
+import sys
+input = sys.stdin.readline
+INF = int(1e9)
+
+n, m, city = map(int, input().split())
+graph = [[] for i in range(n+1)]
+distance = [INF] * (n+1)
+
+for _ in range(m):
+    x, y, z = map(int, input().split())
+    graph[z].append((y, z))
+
+
+def dijkstra(city):
+    queue = []
+
+    heapq.heappush(queue, (0, city))    # queue에다가 시작 노드로 가기 위한 최단 거리를 0으로 설정.
+    distance[city] = 0
+
+    while queue:
+        dist, now = heapq.heappop(queue)    # 가장 최단 거리가 짧은 노드를 pop 해온다.
+
+        if distance[now] < dist:
+            continue
+
+        for i in graph[now]:
+            cost = dist + i[1]
+
+            # 현재 노드를 거쳐서 다른 노드로 이동하는 거리가 더 짧은 경우
+            if cost < distance[i[0]]:
+                distance[i[0]] = cost
+                heapq.heappush(queue, (cost, i[0]))
+
+
+dijkstra(city)
+
+count = 0
+
+max_distance = 0
+for d in distance:
+    if d != 1e9:
+        count += 1
+        max_distance = max(max_distance, d)
+
+print(count-1, max_distance)
